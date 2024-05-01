@@ -12,7 +12,7 @@ public class VehiculoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "patente")
     private String patente;//4 letras y 2 numeros
@@ -34,5 +34,11 @@ public class VehiculoEntity {
     
     @Column(name = "num_asientos")
     private Integer num_asientos;
+
+    @Column(name = "kilometraje")
+    private Integer kilometraje;
+
+    @Column(name = "fbono")
+    private String fbono = "no";
 
 }

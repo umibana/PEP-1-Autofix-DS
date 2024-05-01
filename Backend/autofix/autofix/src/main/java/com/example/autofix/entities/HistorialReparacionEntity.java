@@ -7,34 +7,20 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "reparacion")
+@Table(name = "historial_reparacion")
 @Getter
 @Setter
-public class ReparacionEntity {
+public class HistorialReparacionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "fecha_ingreso")
     private LocalDate fecha_ingreso;
 
     @Column(name = "hora_ingreso")
     private LocalTime hora_ingreso;
-
-    @Column(name = "tipo_reparacion")
-    private String tipo_reparacion; 
-    /*  Reparaciones del Sistema de Frenos
-        Servicio del Sistema de Refrigeración
-        Reparaciones del Motor
-        Reparaciones de la Transmisión
-        Reparación del Sistema Eléctrico
-        Reparaciones del Sistema de Escape
-        Reparación de Neumáticos y Ruedas
-        Reparaciones de la Suspensión y la Dirección
-        Reparación del Sistema de Aire Acondicionado y Calefacción
-        Reparaciones del Sistema de Combustible
-        Reparación y Reemplazo del Parabrisas y Cristales */
 
     @Column(name = "monto_reparacion")
     private Integer monto_reparacion;
@@ -52,6 +38,6 @@ public class ReparacionEntity {
     private LocalTime hora_cliente_busco_auto;
     
     @Column(name = "id_auto")
-    private Integer id_auto;
+    private Long id_auto;
 
 }

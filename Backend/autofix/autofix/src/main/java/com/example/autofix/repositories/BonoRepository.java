@@ -3,9 +3,10 @@ package com.example.autofix.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.example.autofix.entities.ReparacionEntity;
+import com.example.autofix.entities.BonoEntity;
 
 @Repository
-public interface ReparacionRepository extends JpaRepository<ReparacionEntity, Long>{
-    
+public interface BonoRepository extends JpaRepository<BonoEntity, Long>{
+
+    BonoEntity findByMarca (String marca);
 }
