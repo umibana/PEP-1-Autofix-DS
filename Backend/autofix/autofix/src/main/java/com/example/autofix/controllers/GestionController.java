@@ -34,6 +34,7 @@ public class GestionController {
         return ResponseEntity.ok(vehiculos);
     }
 
+    //Vista para ingresar un auto
     @PostMapping("/vehiculo")
     public ResponseEntity<VehiculoEntity> saveVehiculo(@RequestBody VehiculoEntity vehiculo){
         VehiculoEntity vehiculoNew = gestionService.saveVehiculo(vehiculo);
@@ -46,6 +47,7 @@ public class GestionController {
         return ResponseEntity.ok(vehiculaReparcion);
     }
 
+    //Vista donde se le asignan las reparaciones al auto a eleccion
     @PostMapping("/reparacion")
     public ResponseEntity<List<VehiculoReparacionEntity>> guardarListaReparacionesVehiculo(@RequestBody List<VehiculoReparacionEntity> reparaciones){
         List<VehiculoReparacionEntity> reparacionesGuardadas = gestionService.guardarListaReparacionVehiculo(reparaciones);
@@ -64,6 +66,7 @@ public class GestionController {
         return ResponseEntity.ok(bonoNew);
     }
 
+    //Vista de actualizar el bono a un auto
     @PostMapping("/vehiculo/bono")
     public ResponseEntity<Void> actualizacionBono(@RequestBody VehiculoEntity vehiculo){
         gestionService.actualizarFlagBono(vehiculo.getId());
@@ -82,17 +85,21 @@ public class GestionController {
         return ResponseEntity.ok(historialNew);
     }
 
+    //Vista donde se creara el historial de reparacion de dicho auto en ese momento (Solo fecha/hora ingreso, fecha/hora salida y id auto del historial)
     @PostMapping("/historial_reparacion/salida")
     public ResponseEntity<HistorialReparacionEntity> guardarSalidaHistorialReparacion(@RequestBody VehiculoEntity vehiculo, @RequestParam("fechaSalida") LocalDate fechaSalida, @RequestParam("horaSalida") LocalTime horaSalida){
         HistorialReparacionEntity historialSalidaNew = gestionService.guardarHistorialReparacionEntity(vehiculo.getId(), fechaSalida, horaSalida);
         return ResponseEntity.ok(historialSalidaNew);
     }
 
+    //Vista donde se actualizara el historial de reparacion de dicho auto en ese momento (Se agrega fecha/hora cliente y se ingresa el monto)
     @PostMapping("/historial_reparacion/cliente")
     public ResponseEntity<HistorialReparacionEntity> actualizacionHistorialReparacion(@RequestBody VehiculoEntity vehiculo, @RequestParam("fechaCliente") LocalDate fechaCliente, @RequestParam("horaCliente") LocalTime horaCliente){
         HistorialReparacionEntity reparacionUpdated = gestionService.updateHistoriaReparacionEntity(vehiculo.getId(),fechaCliente,horaCliente);
         return ResponseEntity.ok(reparacionUpdated);
     }
+
+    //Vista donde se mostrara el reporte 1
     @GetMapping("/reporte_costo")
     public ResponseEntity<List<ReporteCostoEntity>> getReportesCosto(){
         List<ReporteCostoEntity> reportes = gestionService.getReporteCosto();

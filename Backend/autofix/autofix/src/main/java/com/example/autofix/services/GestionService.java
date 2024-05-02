@@ -365,7 +365,7 @@ public class GestionService {
         HistorialReparacionEntity vehiculoHistorial = vehiculoHistorialLista.get(vehiculoHistorialLista.size()-1);
 
         LocalDate fechaActual = LocalDate.now();
-        long diasTranscurridos = ChronoUnit.DAYS.between(vehiculoHistorial.getFecha_salida(),fechaActual);
+        long diasTranscurridos = Math.abs(ChronoUnit.DAYS.between(vehiculoHistorial.getFecha_salida(),fechaActual));
 
         recargo = (int) (recargo +  (5 * diasTranscurridos));
 
@@ -390,8 +390,8 @@ public class GestionService {
         int recargoAntiguedad = recargoAntiguedad(id_auto);
         int recRetrasoRecogida = recargoRetrasoRecogida(id_auto);
 
-        int recargo =(costoTotalReparaciones*recKilometraje/100) + (costoTotalReparaciones*recargoAntiguedad/100) + (costoTotalReparaciones*recRetrasoRecogida/100);
-        int descuento = (costoTotalReparaciones*descNumRepa/100) + (costoTotalReparaciones*descDiaAtencion/100) + (costoTotalReparaciones*descBono/100);
+        int recargo =(costoTotalReparaciones * recKilometraje / 100) + (costoTotalReparaciones * recargoAntiguedad / 100) + (costoTotalReparaciones * recRetrasoRecogida / 100);
+        int descuento = (costoTotalReparaciones * descNumRepa / 100) + (costoTotalReparaciones * descDiaAtencion / 100) + (costoTotalReparaciones * descBono / 100);
 
         costoFinal = costoTotalReparaciones + recargo - descuento;
 
@@ -426,7 +426,7 @@ public class GestionService {
         reporteCostoNew.setCosto_total_reparacion(costoTotalReparacion(id_auto));
 
         updateMontoHistoriaReparacion(id_auto);
-        
+
         return reporteCostoRepository.save(reporteCostoNew);
     }
 
