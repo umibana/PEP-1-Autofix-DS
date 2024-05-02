@@ -9,5 +9,6 @@ import com.example.autofix.entities.VehiculoReparacionEntity;
 
 @Repository
 public interface VehiculoReparacionRepository extends JpaRepository<VehiculoReparacionEntity, Long>{
-    List<VehiculoReparacionEntity> findByIdauto(Long idAuto);
+    
+    List<VehiculoReparacionEntity> findByIdauto(Long auto);
 }

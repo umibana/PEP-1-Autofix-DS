@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 
 import com.example.autofix.entities.BonoEntity;
 import com.example.autofix.entities.HistorialReparacionEntity;
+import com.example.autofix.entities.ReporteCostoEntity;
 import com.example.autofix.entities.VehiculoEntity;
 import com.example.autofix.entities.VehiculoReparacionEntity;
 import com.example.autofix.repositories.BonoRepository;
 import com.example.autofix.repositories.HistorialReparacionRepository;
+import com.example.autofix.repositories.ReporteCostoRepository;
 import com.example.autofix.repositories.VehiculoReparacionRepository;
 import com.example.autofix.repositories.VehiculoRepository;
 
@@ -33,6 +35,9 @@ public class GestionService {
     @Autowired
     BonoRepository bonoRepository;
 
+    @Autowired
+    ReporteCostoRepository reporteCostoRepository;
+
     public ArrayList<BonoEntity> getBonos(){
         return (ArrayList<BonoEntity>) bonoRepository.findAll();
     }
@@ -49,7 +54,7 @@ public class GestionService {
         return vehiculoRepository.save(vehiculo);
     }
 
-    public ArrayList<VehiculoReparacionEntity> getVehiculoReparaciones(){
+    public ArrayList<VehiculoReparacionEntity> getVehiculosReparaciones(){
         return (ArrayList<VehiculoReparacionEntity>) vehiculoReparacionRepository.findAll();
     }
 
@@ -67,17 +72,17 @@ public class GestionService {
     
 
     public int costoTotalReparacion(Long id_auto){
-        List<VehiculoReparacionEntity> vehiculoReparaciones = vehiculoReparacionRepository.findByIdauto(id_auto);
+        List<VehiculoReparacionEntity> vehiculoReparacionesLista = vehiculoReparacionRepository.findByIdauto(id_auto);
         int costoTotal = 0;
-        for(VehiculoReparacionEntity reparacionVehiculo:vehiculoReparaciones){
-            costoTotal = costoTotal + reparacionVehiculo.getCosto();
+        for(VehiculoReparacionEntity reparacionVehiculo:vehiculoReparacionesLista){
+            costoTotal = costoTotal + (reparacionVehiculo.getCosto_reparacion());
         }
 
         return costoTotal;
     }
 
-    public List<HistorialReparacionEntity> getHistorialReparacionByIdVehiculo (Long id_auto){
-        return (List<HistorialReparacionEntity>) historialReparacionRepository.findByIdAutoOrderedByIdAsc(id_auto);
+    public List<VehiculoReparacionEntity> getReparacionesVehiculo (Long id_auto){
+        return (List<VehiculoReparacionEntity>) vehiculoReparacionRepository.findByIdauto(id_auto);
     }
 
     public int descuentoNumReparaciones (Long id_auto){
@@ -365,5 +370,100 @@ public class GestionService {
         recargo = (int) (recargo +  (5 * diasTranscurridos));
 
         return recargo;
+    }
+
+    public List<VehiculoReparacionEntity> guardarListaReparacionVehiculo (List<VehiculoReparacionEntity> lista_reparaciones){
+        List<VehiculoReparacionEntity> reparacionNew = vehiculoReparacionRepository.saveAll(lista_reparaciones);
+        return reparacionNew;
+    }
+
+    public int costoTotalconDescYRecargo(Long id_auto){
+        int costoFinal = 0;
+        // Monto de reparaciones a las cuales despues multiplicar por el % de los desc y recargos
+        int costoTotalReparaciones = costoTotalReparacion(id_auto);
+
+        int descNumRepa = descuentoNumReparaciones(id_auto);
+        int descDiaAtencion = descuentoDiaAtencion(id_auto);
+        int descBono = descuentoBono(id_auto);
+
+        int recKilometraje = recargoKilometraje(id_auto);
+        int recargoAntiguedad = recargoAntiguedad(id_auto);
+        int recRetrasoRecogida = recargoRetrasoRecogida(id_auto);
+
+        int recargo =(costoTotalReparaciones*recKilometraje/100) + (costoTotalReparaciones*recargoAntiguedad/100) + (costoTotalReparaciones*recRetrasoRecogida/100);
+        int descuento = (costoTotalReparaciones*descNumRepa/100) + (costoTotalReparaciones*descDiaAtencion/100) + (costoTotalReparaciones*descBono/100);
+
+        costoFinal = costoTotalReparaciones + recargo - descuento;
+
+        return costoFinal;
+    }
+
+    public ArrayList<ReporteCostoEntity> getReporteCosto(){
+        return (ArrayList<ReporteCostoEntity>) reporteCostoRepository.findAll();
+    }
+
+    public ReporteCostoEntity saveReporteCosto(Long id_auto){
+        ReporteCostoEntity reporteCostoNew = new ReporteCostoEntity();
+        reporteCostoNew.setId_auto(id_auto);
+
+        List<VehiculoReparacionEntity> lista_reparaciones = getReparacionesVehiculo(id_auto);
+        List<String> lista_nombres_reparaciones = new ArrayList<>();
+        List<Integer> lista_costos_reparaciones= new ArrayList<>();
+
+        for(VehiculoReparacionEntity reparacion:lista_reparaciones){
+            lista_nombres_reparaciones.add(reparacion.getTipo_reparacion());
+            lista_costos_reparaciones.add(reparacion.getCosto_reparacion());
+        }
+
+        reporteCostoNew.setLista_nombres_reparaciones(lista_nombres_reparaciones);
+        reporteCostoNew.setLista_costos_reparaciones(lista_costos_reparaciones);
+        reporteCostoNew.setDesc_num_repa(descuentoNumReparaciones(id_auto));
+        reporteCostoNew.setDesc_dia_atencion(descuentoDiaAtencion(id_auto));
+        reporteCostoNew.setDesc_bono(descuentoBono(id_auto));
+        reporteCostoNew.setRec_kilometraje(recargoKilometraje(id_auto));
+        reporteCostoNew.setRecargo_antiguedad(recargoAntiguedad(id_auto));
+        reporteCostoNew.setRec_retraso_recogida(recargoRetrasoRecogida(id_auto));
+        reporteCostoNew.setCosto_total_reparacion(costoTotalReparacion(id_auto));
+
+        updateMontoHistoriaReparacion(id_auto);
+        
+        return reporteCostoRepository.save(reporteCostoNew);
+    }
+
+    /*
+    Funcion utilizada posteriormente de haber registrado todas las reparaciones al vehiculo, tiene su propia vista para ajustar
+    fecha y hora de la salida que va a necesitar la reparacion
+     */
+    public HistorialReparacionEntity guardarHistorialReparacionEntity(Long id_auto, LocalDate fecha_salida, LocalTime hora_salida){
+        HistorialReparacionEntity historialReparacionEntityNew = new HistorialReparacionEntity();
+        historialReparacionEntityNew.setFecha_ingreso(LocalDate.now());
+        historialReparacionEntityNew.setHora_ingreso(LocalTime.now());
+        historialReparacionEntityNew.setFecha_salida(fecha_salida);
+        historialReparacionEntityNew.setHora_salida(hora_salida);
+        historialReparacionEntityNew.setId_auto(id_auto);
+
+        return historialReparacionRepository.save(historialReparacionEntityNew);
+    }
+    /*
+     Funcion Utilizada para ingresar datos de fecha y hora cuando el cliente va a buscar el auto
+     */
+    public HistorialReparacionEntity updateHistoriaReparacionEntity(Long id_auto, LocalDate fecha_cliente, LocalTime hora_cliente){
+        List<HistorialReparacionEntity> vehiculoHistorialLista = historialReparacionRepository.findByIdAutoOrderedByIdAsc(id_auto);
+        HistorialReparacionEntity vehiculoHistorial = vehiculoHistorialLista.get(vehiculoHistorialLista.size()-1);
+
+        vehiculoHistorial.setFecha_cliente_busco_auto(fecha_cliente);
+        vehiculoHistorial.setHora_cliente_busco_auto(hora_cliente);
+        saveReporteCosto(id_auto);
+
+        return historialReparacionRepository.save(vehiculoHistorial);
+    }
+
+    public HistorialReparacionEntity updateMontoHistoriaReparacion(Long id_auto){
+        List<HistorialReparacionEntity> vehiculoHistorialLista = historialReparacionRepository.findByIdAutoOrderedByIdAsc(id_auto);
+        HistorialReparacionEntity vehiculoHistorial = vehiculoHistorialLista.get(vehiculoHistorialLista.size()-1);
+
+        vehiculoHistorial.setMonto_reparacion(costoTotalconDescYRecargo(id_auto));
+
+        return historialReparacionRepository.save(vehiculoHistorial);
     }
 }
