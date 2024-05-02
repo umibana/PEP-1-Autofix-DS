@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,7 @@ import com.example.autofix.services.GestionService;
 
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api")
 public class GestionController {
 
@@ -67,9 +70,9 @@ public class GestionController {
     }
 
     //Vista de actualizar el bono a un auto
-    @PostMapping("/vehiculo/bono")
-    public ResponseEntity<Void> actualizacionBono(@RequestBody VehiculoEntity vehiculo){
-        gestionService.actualizarFlagBono(vehiculo.getId());
+    @PostMapping("/vehiculo/bono/{vehiculoId}")
+    public ResponseEntity<Void> actualizacionBono(@PathVariable Long vehiculoId){
+        gestionService.actualizarFlagBono(vehiculoId);
         return ResponseEntity.ok().build();
     }
 
@@ -86,16 +89,18 @@ public class GestionController {
     }
 
     //Vista donde se creara el historial de reparacion de dicho auto en ese momento (Solo fecha/hora ingreso, fecha/hora salida y id auto del historial)
-    @PostMapping("/historial_reparacion/salida")
-    public ResponseEntity<HistorialReparacionEntity> guardarSalidaHistorialReparacion(@RequestBody VehiculoEntity vehiculo, @RequestParam("fechaSalida") LocalDate fechaSalida, @RequestParam("horaSalida") LocalTime horaSalida){
-        HistorialReparacionEntity historialSalidaNew = gestionService.guardarHistorialReparacionEntity(vehiculo.getId(), fechaSalida, horaSalida);
+    @PostMapping("/historial_reparacion/salida/{vehiculoId}/{fechaSalida}/{horaSalida}")
+    public ResponseEntity<HistorialReparacionEntity> guardarSalidaHistorialReparacion(@PathVariable Long vehiculoId, 
+                                                                                    @PathVariable LocalDate fechaSalida, 
+                                                                                    @PathVariable LocalTime horaSalida){
+        HistorialReparacionEntity historialSalidaNew = gestionService.guardarHistorialReparacionEntity(vehiculoId, fechaSalida, horaSalida);
         return ResponseEntity.ok(historialSalidaNew);
     }
 
     //Vista donde se actualizara el historial de reparacion de dicho auto en ese momento (Se agrega fecha/hora cliente y se ingresa el monto)
-    @PostMapping("/historial_reparacion/cliente")
-    public ResponseEntity<HistorialReparacionEntity> actualizacionHistorialReparacion(@RequestBody VehiculoEntity vehiculo, @RequestParam("fechaCliente") LocalDate fechaCliente, @RequestParam("horaCliente") LocalTime horaCliente){
-        HistorialReparacionEntity reparacionUpdated = gestionService.updateHistoriaReparacionEntity(vehiculo.getId(),fechaCliente,horaCliente);
+    @PostMapping("/historial_reparacion/cliente/{vehiculoId}/{fechaCliente}/{horaCliente}")
+    public ResponseEntity<HistorialReparacionEntity> actualizacionHistorialReparacion(@PathVariable Long vehiculoId,@PathVariable LocalDate fechaCliente, @PathVariable LocalTime horaCliente){
+        HistorialReparacionEntity reparacionUpdated = gestionService.updateHistoriaReparacionEntity(vehiculoId,fechaCliente,horaCliente);
         return ResponseEntity.ok(reparacionUpdated);
     }
 
